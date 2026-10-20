@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Qualidade - Concentrado de Hemácias</title>
+<style>
+:root {
+  --azul:#244d78;
+  --azul2:#4266a5;
+  --rosa:#e98da3;
+  --preto:#20252b;
+  --vermelho:#c62828;
+  --amarelo:#946b00;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:#f1f4f8; color:var(--preto);
+  font:14px Arial,sans-serif;
+}
+header {
+  background:white; border-bottom:5px solid var(--azul2);
+  padding:14px 22px; display:flex; align-items:center; justify-content:space-between;
+  gap:24px; text-align:right;
+}
+.logo {
+  flex:0 0 auto; width:100px; height:100px; border:0;
+  border-radius:0; display:flex; align-items:center; justify-content:center;
+  color:var(--azul2); font-size:58px; font-weight:800; letter-spacing:-7px;
+  line-height:1; position:relative; background:#fff; padding-right:7px;
+}
+.logo span { color:#e72d59; }
+.brand-text { flex:1; min-width:0; text-align:right; }
+header h1 { color:var(--azul); font-size:23px; margin:0 0 7px; }
+header p { color:#244d78; margin:0; font-weight:700; }
+#periodoCabecalho { display:block; margin-top:4px; color:#244d78; font-size:13px; font-weight:700; }
+main { max-width:1500px; margin:auto; padding:18px; }
+.card {
+  background:white; border:1px solid #d3dce6; border-radius:10px;
+  padding:16px; margin-bottom:16px;
+}
+h2 { color:var(--azul); font-size:18px; margin:0 0 14px; }
+.controls {
+  display:flex; flex-wrap:wrap; gap:10px; align-items:end;
+}
+.field { display:flex; flex-direction:column; gap:5px; flex:1; min-width:140px; }
+label { font-weight:bold; font-size:12px; }
+input,select,textarea,button { font:inherit; }
+input,select,textarea {
+  width:100%; min-width:0; padding:8px;
+  border:1px solid #bac7d5; border-radius:5px;
+}
+button {
+  background:var(--azul); color:white; border:0;
+  border-radius:6px; padding:10px 14px; cursor:pointer;
+  font-weight:bold;
+}
+button.secondary { background:#e9eff7; color:var(--azul); }
+.hint { color:#596575; font-size:12px; line-height:1.5; }
+.table-wrap { overflow-x:auto; }
+table { border-collapse:collapse; width:100%; }
+#tabela { min-width:1400px; }
+th,td { border:1px solid #9aa6b4; padding:8px 5px; text-align:center; vertical-align:middle; }
+th { background:#dbe3ed; font-size:12px; line-height:1.25; }
+#tabela { min-width:1600px; table-layout:auto; }
+#tabela th { white-space:normal; overflow-wrap:break-word; word-break:normal; }
+#tabela td { height:48px; }
+td input,td select { min-width:72px; min-height:34px; padding:7px 4px; font-size:13px; color:#000; text-align:center; }
+input,select,textarea { color:#000; }
+input::placeholder,textarea::placeholder { color:#555; opacity:1; }
+.manual { color:#000 !important; }
+td input.red,td select.red,td input.yellow,td select.yellow { font-weight:bold; }
+.red { color:var(--vermelho)!important; background:#ffebee!important; font-weight:bold; }
+.yellow { color:var(--amarelo)!important; background:#fff3c4!important; font-weight:bold; }
+.summary { min-width:0; table-layout:auto; }
+.summary th,.summary td { padding:12px 9px; font-size:14px; line-height:1.3; text-align:center; vertical-align:middle; }
+.summary tbody tr { height:48px; }
+.summary input { max-width:160px; min-height:36px; text-align:center; font-size:14px; }
+.fullrow { text-align:center; background:#e0e6ee; font-weight:bold; }
+.production-input { width:100%; min-width:90px; min-height:34px; padding:6px; border:1px solid #8b9bad; border-radius:4px; text-align:center; font-size:14px; background:#fff; }
+.result { font-weight:bold; }
+#conclusao h2 { text-align:center; }
+#conclusao .conclusao-resultado { padding:3px 7px; margin-top:-4px; }
+.status {
+  display:inline-block; padding:9px 16px; border:2px solid;
+  border-radius:6px; font-weight:bold;
+}
+.ok { background:#e8f5e9; border-color:#38864b; color:#216e39; }
+.bad { background:#ffebee; border-color:#c62828; color:#c62828; }
+.pending { background:#f1f3f5; border-color:#9ba6b2; color:#46515c; }
+.charts {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px;
+}
+.chart {
+  min-width:0; border:1px solid #d5dce5; padding:10px;
+  border-radius:8px; background:#fff;
+}
+.chart h3 { color:var(--azul); font-size:14px; text-align:center; min-height:34px; margin:4px 0 8px; }
+.chart canvas { width:100%; height:360px; display:block; }
+body.print-mode .charts { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(2,auto); gap:7px; }
+body.print-mode .chart canvas { height:270px!important; }
+.chart p { font-size:12px; text-align:center; color:#000; margin:7px 0 2px; }
+textarea { min-height:100px; resize:vertical; }
+.obs { display:grid; grid-template-columns:1fr 2fr; gap:12px; }
+@media(max-width:800px) {
+  .charts { grid-template-columns:1fr; }
+  .obs { grid-template-columns:1fr; }
+  header { gap:12px; padding:12px; }
+  .logo { width:76px; height:76px; font-size:45px; border:0; border-radius:0; }
+  header h1 { font-size:19px; }
+}
+@media print {
+  @page { size:A4 landscape; margin:5mm; }
+  html, body { background:#fff!important; color:#000!important; font-size:7.5pt; }
+  body { margin:0; }
+  header { padding:0 0 4px; border:0; display:flex; flex-direction:row; align-items:center; gap:10px; text-align:right; }
+  .logo { width:54px; height:54px; font-size:33px; border:0; border-radius:0; letter-spacing:-4px; padding-right:4px; }
+  .brand-text { flex:1; text-align:right; }
+  header h1 { font-size:13px; margin:0 0 3px; }
+  header p { font-size:8px; margin:0; }
+  #periodoCabecalho { margin-top:2px; font-size:7.5px; }
+  .no-print { display:none!important; }
+  main { padding:0; max-width:none; }
+  .card { border:0; border-radius:0; padding:2px 0; margin:0 0 4px; }
+  h2 { font-size:10px; margin:0 0 4px; }
+  .hint { font-size:7px; margin:3px 0; }
+  .remove-hint { display:none!important; }
+  .table-wrap { overflow:visible; }
+  #tabela { min-width:0!important; width:100%; table-layout:fixed; }
+  #tabela th:nth-child(1) { width:3%; } #tabela th:nth-child(2) { width:5%; }
+  #tabela th:nth-child(3) { width:8%; } #tabela th:nth-child(4) { width:13%; }
+  #tabela th:nth-child(5) { width:7%; } #tabela th:nth-child(6) { width:5%; }
+  #tabela th:nth-child(7) { width:7%; } #tabela th:nth-child(8) { width:4%; }
+  #tabela th:nth-child(9) { width:5%; } #tabela th:nth-child(10) { width:6%; }
+  #tabela th:nth-child(11) { width:6%; } #tabela th:nth-child(12) { width:8%; }
+  #tabela th:nth-child(13) { width:6%; } #tabela th:nth-child(14) { width:9%; }
+  th,td { padding:3px 2px; font-size:7.6px; line-height:1.1; overflow-wrap:normal; word-break:normal; text-align:center; vertical-align:middle; }
+  th { font-size:7.5px; color:#244d78; background:#e5edf7!important; }
+  #tabela td { height:32px; }
+  td input,td select { min-width:0!important; width:100%; min-height:20px; padding:1px; border:0; font-size:7.5px; line-height:1.05; background:transparent!important; color:#000!important; appearance:none; text-align:center; white-space:nowrap; }
+  .summary th,.summary td { padding:5px 3px; font-size:8.5px; line-height:1.1; }
+  .summary tbody tr { height:30px; }
+  .summary input,.production-input { max-width:100%; min-height:26px; padding:3px; font-size:9px; color:#000!important; }
+  #registro, #resumo { break-after:auto; page-break-after:auto; }
+  #resumo { padding-bottom:0; margin-bottom:1px; }
+  #resumo h2 { margin-bottom:2px; }
+  #resumo .summary th,#resumo .summary td { padding:3px 3px; }
+  #resumo .summary tbody tr { height:23px; }
+  #resumo .summary tfoot tr { height:22px; }
+  #resumo .summary input { min-height:18px; padding:1px; }
+  #resumo .production-input { display:none!important; }
+  #conclusao { padding:0!important; margin:7px 0 0!important; text-align:center!important; }
+  #conclusao h2 { text-align:center; margin:0 0 1px; }
+  #conclusao .conclusao-resultado { padding:1px!important; margin:0!important; justify-content:center!important; }
+  #situacao { padding:3px 10px; }
+  #graficos { break-before:page; page-break-before:always; }
+  #naoConformidades { break-before:page; page-break-before:always; }
+  .charts { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(2,auto); gap:7px; align-items:stretch; }
+  .chart { min-width:0; break-inside:avoid; page-break-inside:avoid; padding:4px; border:1px solid #aeb9c5; box-sizing:border-box; }
+  .chart canvas { width:100%!important; height:270px!important; display:block; }
+  .chart h3 { min-height:0; font-size:9px; line-height:1.15; margin:2px 0 3px; }
+  .chart p { font-size:7px; line-height:1.1; margin:2px 0 0; }
+  textarea { min-height:35px; resize:none; }
+  .status { padding:4px 8px; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .red,.yellow,.ok,.bad,.pending { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  * { box-shadow:none!important; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" aria-label="Marca estilizada Hospital de Amor">h<span>a</span></div>
+  <div class="brand-text">
+    <h1>Controle de Qualidade — Concentrado de Hemácias</h1>
+    <p>Controle de Qualidade • Barretos (SP)</p>
+    <span id="periodoCabecalho">Mês/Ano do controle: —</span>
+  </div>
+</header>
+
+<main>
+<section class="card no-print">
+  <h2>Identificação do relatório</h2>
+  <div class="controls">
+    <div class="field">
+      <label for="mes">Mês de referência</label>
+      <select id="mes">
+        <option>Janeiro</option><option>Fevereiro</option>
+        <option>Março</option><option>Abril</option>
+        <option>Maio</option><option>Junho</option>
+        <option>Julho</option><option>Agosto</option>
+        <option>Setembro</option><option>Outubro</option>
+        <option>Novembro</option><option>Dezembro</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="ano">Ano</label>
+      <input id="ano" type="number" min="2000" max="2100">
+    </div>
+    <div class="field">
+      <label for="producao">Total de unidades produzidas no mês</label>
+      <input id="producao" type="number" min="0" step="1" inputmode="numeric" placeholder="Digite o total">
+    </div>
+    <div class="field">
+      <label for="quantidadeAmostras">Número de amostras avaliadas</label>
+      <input id="quantidadeAmostras" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="Ex.: 10">
+    </div>
+    <button id="pdf">Salvar / imprimir em PDF</button>
+    <button id="backup" class="secondary">Exportar backup</button>
+    <button id="importar" class="secondary">Importar backup</button>
+    <input id="arquivo" type="file" accept=".json" hidden>
+  </div>
+</section>
+
+<section class="card" id="registro">
+  <h2>Registro das bolsas analisadas</h2>
+  <div class="table-wrap">
+    <table id="tabela">
+      <thead><tr>
+        <th>Nº</th><th>Data</th><th>Número da unidade</th>
+        <th>Lote / fabricante da bolsa</th><th>Anticoagulante</th>
+        <th>Volume (mL)</th><th>Tempo de estoque (dias)</th>
+        <th>Ht (%)</th><th>Hb (g/dL)</th><th>Hb (g/unid.)</th>
+        <th>Hb livre (g/dL)</th><th>Grau de hemólise (%)</th>
+        <th>Cultura</th><th>Responsável</th>
+      </tr></thead>
+      <tbody id="linhas"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card" id="resumo">
+  <h2>Parâmetros avaliados</h2>
+  <div class="table-wrap">
+    <table class="summary">
+      <thead><tr>
+        <th>Parâmetros avaliados</th>
+        <th>Número de amostras analisadas</th>
+        <th>Resultado conforme esperado (%)</th>
+        <th>Resultado conforme encontrado (%)</th>
+      </tr></thead>
+      <tbody id="sumario"></tbody>
+      <tfoot>
+        <tr><td colspan="3" class="fullrow">Total de unidades produzidas no mês</td><td id="producaoResumo" class="result">—</td></tr>
+        <tr><td colspan="3" class="fullrow">Unidades analisadas em relação à produção mensal (%)</td><td id="percentualAmostras">—</td></tr>
+      </tfoot>
+    </table>
+  </div>
+</section>
+
+<section class="card" id="conclusao">
+  <h2>Conclusão do controle mensal</h2>
+  <div class="conclusao-resultado" style="display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;border:0;padding:7px;text-align:center">
+    <span id="situacao" class="status pending">Preencher dados</span>
+  </div>
+</section>
+
+<section class="card" id="graficos">
+  <h2>Análise gráfica das unidades — <span id="periodo"></span></h2>
+  <div class="charts" id="painelGraficos"></div>
+</section>
+
+<section class="card" id="naoConformidades" hidden>
+  <h2>Registro de não conformidades, investigação e observações</h2>
+  <div class="obs">
+    <div class="field">
+      <label for="unidadeNC">Bolsa / número da unidade (opcional)</label>
+      <input id="unidadeNC" placeholder="Identificação da bolsa">
+    </div>
+    <div class="field">
+      <label for="observacoes">Descrição da possível causa, avaliação, conduta ou justificativa</label>
+      <textarea id="observacoes" placeholder="Descreva a ocorrência, mesmo que o percentual geral esteja dentro do esperado..."></textarea>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+(() => {
+"use strict";
+
+const CHAVE = "hospital_amor_cq_ch_v1";
+const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+"Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+const campos = [
+ ["data","Data","texto"],
+ ["unidade","Número da unidade","texto"],
+ ["lote","Lote / fabricante da bolsa","texto"],
+ ["anticoagulante","Anticoagulante","texto","CPDA-1"],
+ ["volume","Volume (mL)","numero"],
+ ["dias","Tempo de estoque (dias)","numero"],
+ ["ht","Ht (%)","numero"],
+ ["hbDl","Hb (g/dL)","numero"],
+ ["hbUnid","Hb (g/unid.)","numero"],
+ ["hbLivre","Hb livre (g/dL)","numero"],
+ ["hemolise","Grau de hemólise (%)","numero"],
+ ["cultura","Cultura","select"],
+ ["responsavel","Responsável","texto"]
+];
+
+const criterios = [
+ {key:"volume",label:"Volume: 220 a 320 mL",esperado:80,
+  passa:r=>valido(r.volume)&&num(r.volume)>=220&&num(r.volume)<=320},
+ {key:"ht",label:"Ht: 65 a 80%",esperado:80,
+  passa:r=>valido(r.ht)&&num(r.ht)>=65&&num(r.ht)<=80},
+ {key:"hbUnid",label:"Hb: ≥ 45 g/unidade",esperado:80,
+  passa:r=>valido(r.hbUnid)&&num(r.hbUnid)>=45},
+ {key:"hemolise",label:"Hemólise: ≤ 0,8%",esperado:80,
+  passa:r=>valido(r.hemolise)&&num(r.hemolise)<=0.8},
+ {key:"cultura",label:"Cultura: Negativa",esperado:100,
+  passa:r=>String(r.cultura).toLowerCase()==="negativa"}
+];
+
+const $ = id => document.getElementById(id);
+const valido = v => String(v ?? "").trim()!=="" && Number.isFinite(num(v));
+
+function num(v) {
+  if(v===null || v===undefined || String(v).trim()==="") return NaN;
+  let s=String(v).trim().replace(/\s/g,"");
+  if(s.includes(",")&&s.includes(".")) {
+    s=s.lastIndexOf(",")>s.lastIndexOf(".")
+      ?s.replace(/\./g,"").replace(",",".")
+      :s.replace(/,/g,"");
+  } else s=s.replace(",",".");
+  const x=Number(s);
+  return Number.isFinite(x)?x:NaN;
+}
+function fmt(v,d=1) {
+  return Number.isFinite(v)
+    ?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})
+    :"—";
+}
+function linhaVazia() {
+  const r={};
+  campos.forEach(c=>r[c[0]]=c[3]||"");
+  return r;
+}
+
+let dados = {
+ mes:meses[new Date().getMonth()],
+ ano:new Date().getFullYear(),
+ producao:"",
+ quantidadeAmostras:10,
+ linhas:[],
+ esperado:{},
+ unidadeNC:"",
+ observacoes:""
+};
+
+function garantirLinhas() {
+ if(!Number.isFinite(Number(dados.quantidadeAmostras)) || Number(dados.quantidadeAmostras)<1) dados.quantidadeAmostras=10;
+ dados.quantidadeAmostras=Math.max(1,Math.min(100,Math.floor(Number(dados.quantidadeAmostras))));
+ while(dados.linhas.length<dados.quantidadeAmostras) dados.linhas.push(linhaVazia());
+ criterios.forEach(c=>{
+  if(dados.esperado[c.key]===undefined) dados.esperado[c.key]=c.esperado;
+ });
+}
+function salvar() {
+ try { localStorage.setItem(CHAVE,JSON.stringify(dados)); } catch(e) {}
+}
+function carregar() {
+ try {
+  const salvo=JSON.parse(localStorage.getItem(CHAVE));
+  if(salvo) dados={...dados,...salvo};
+ } catch(e) {}
+ garantirLinhas();
+}
+function preencherCabecalho() {
+ $("mes").value=dados.mes;
+ $("ano").value=dados.ano;
+ $("producao").value=dados.producao;
+ $("quantidadeAmostras").value=dados.quantidadeAmostras;
+ $("unidadeNC").value=dados.unidadeNC||"";
+ $("observacoes").value=dados.observacoes||"";
+}
+function renderizarLinhas() {
+ const tbody=$("linhas");
+ tbody.innerHTML="";
+ dados.linhas.slice(0,dados.quantidadeAmostras).forEach((r,i)=>{
+  const tr=document.createElement("tr");
+  const numero=document.createElement("td");
+  numero.textContent=String(i+1).padStart(2,"0");
+  tr.appendChild(numero);
+  campos.forEach(c=>{
+   const td=document.createElement("td");
+   let el;
+   if(c[2]==="select") {
+    el=document.createElement("select");
+    ["","Negativa","Positiva","Pendente"].forEach(v=>{
+     const op=document.createElement("option");
+     op.value=v; op.textContent=v||"Selecionar";
+     el.appendChild(op);
+    });
+   } else {
+    el=document.createElement("input");
+    el.type="text";
+    el.inputMode=c[2]==="numero"?"decimal":"text";
+    el.placeholder=c[2]==="numero"?"0,0":c[1];
+   }
+   el.value=r[c[0]]??"";
+   el.className="manual";
+   el.dataset.key=c[0];
+   el.setAttribute("aria-label",c[1]+" bolsa "+(i+1));
+   const atualizar=()=>{
+    r[c[0]]=el.value;
+    salvar();
+    atualizarTudo();
+   };
+   el.addEventListener("input",atualizar);
+   el.addEventListener("change",atualizar);
+   const irParaProximaLinha=()=>{
+    const proximaLinha=tr.nextElementSibling;
+    const proximoCampo=proximaLinha?.querySelector('[data-key="'+c[0]+'"]');
+    if(proximoCampo) proximoCampo.focus();
+   };
+   if(el.tagName==="INPUT") {
+    el.addEventListener("keydown",e=>{
+     if(e.key!=="Enter") return;
+     e.preventDefault();
+     irParaProximaLinha();
+    });
+   } else if(el.tagName==="SELECT") {
+    el.addEventListener("keyup",e=>{
+     if(e.key==="Enter") irParaProximaLinha();
+    });
+   }
+   td.appendChild(el); tr.appendChild(td);
+  });
+  tbody.appendChild(tr);
+ });
+ validarCampos();
+}
+function validarCampos() {
+ [...$("linhas").querySelectorAll("tr")].forEach((tr,i)=>{
+  campos.forEach(c=>{
+   const el=tr.querySelector('[data-key="'+c[0]+'"]');
+   if(!el) return;
+   el.classList.remove("red","yellow");
+   if(!valido(dados.linhas[i][c[0]])) return;
+   const v=num(dados.linhas[i][c[0]]);
+   let fora=false,atencao=false;
+   if(c[0]==="volume") fora=v<220||v>320;
+   if(c[0]==="ht") {
+    fora=v<65||v>80;
+    atencao=!fora&&v>77;
+   }
+   if(c[0]==="hbUnid") fora=v<45;
+   if(c[0]==="hemolise") {
+    fora=v>0.8;
+    atencao=!fora&&v>0.6;
+   }
+   if(fora) el.classList.add("red");
+   else if(atencao) el.classList.add("yellow");
+  });
+ });
+ // Exibe o registro de não conformidades somente quando houver algum resultado fora do parâmetro.
+ const temNaoConformidade = !!$("tabela").querySelector(".red");
+ $("naoConformidades").hidden = !temNaoConformidade;
+}
+function amostras(c) {
+ return dados.linhas.slice(0,dados.quantidadeAmostras).filter(r=>String(r[c.key]??"").trim()!=="");
+}
+function renderizarSumario() {
+ const tbody=$("sumario");
+ tbody.innerHTML="";
+ criterios.forEach(c=>{
+  const rs=amostras(c);
+  const percentual=rs.length?rs.filter(c.passa).length/rs.length*100:NaN;
+  const tr=document.createElement("tr");
+  const td1=document.createElement("td"); td1.textContent=c.label; tr.appendChild(td1);
+  const td2=document.createElement("td"); td2.textContent=rs.length; tr.appendChild(td2);
+  const td3=document.createElement("td");
+  const input=document.createElement("input");
+  input.inputMode="decimal"; input.value=dados.esperado[c.key];
+  input.setAttribute("aria-label","Resultado esperado "+c.label);
+  input.addEventListener("change",()=>{
+   dados.esperado[c.key]=input.value;
+   salvar(); renderizarSumario(); conclusao();
+  });
+  td3.appendChild(input); tr.appendChild(td3);
+  const td4=document.createElement("td");
+  td4.className="result";
+  td4.textContent=Number.isFinite(percentual)?fmt(percentual)+"%":"—";
+  if(Number.isFinite(percentual)&&percentual+1e-9<num(dados.esperado[c.key]))
+   td4.classList.add("red");
+  tr.appendChild(td4); tbody.appendChild(tr);
+ });
+ $("producaoResumo").textContent=dados.producao||"—";
+ const prod=num(dados.producao);
+ $("percentualAmostras").textContent=Number.isFinite(prod)&&prod>0
+  ?fmt(dados.quantidadeAmostras/prod*100)+"%":"—";
+}
+function conclusao() {
+ const resultados=criterios.map(c=>{
+  const rs=amostras(c);
+  const p=rs.length?rs.filter(c.passa).length/rs.length*100:NaN;
+  const e=num(dados.esperado[c.key]);
+  return {rs,p,e,ok:rs.length>0&&Number.isFinite(p)&&Number.isFinite(e)&&p+1e-9>=e};
+ });
+ const status=$("situacao");
+ if(resultados.every(x=>!x.rs.length)) {
+  status.className="status pending";
+  status.textContent="Preencher dados";
+  return;
+ }
+ const ok=resultados.every(x=>x.ok);
+ status.className="status "+(ok?"ok":"bad");
+ status.textContent=ok?"CONFORME":"NÃO CONFORME";
+
+}
+function criarGrafico(titulo,valores,unidade,min,max,minLabel,maxLabel) {
+ const div=document.createElement("div"); div.className="chart";
+ const h=document.createElement("h3");
+ h.textContent=titulo+" — "+dados.mes.toUpperCase()+" / "+dados.ano;
+ div.appendChild(h);
+ const canvas=document.createElement("canvas");
+ canvas.setAttribute("aria-label",titulo);
+ canvas.style.width="100%";
+ canvas.style.height="360px";
+ div.appendChild(canvas);
+ const p=document.createElement("p");
+ p.textContent="Bolsas 01–10 • "+(minLabel?"Mínimo: "+minLabel+" ":"")+
+  (maxLabel?"Máximo: "+maxLabel:"");
+ div.appendChild(p);
+ // Mantém os dados associados ao canvas para redesenho específico na impressão.
+ canvas._grafico={valores,unidade,min,max,minLabel,maxLabel};
+ requestAnimationFrame(()=>desenhar(canvas,valores,unidade,min,max,minLabel,maxLabel));
+ return div;
+}
+function desenhar(canvas,valores,unidade,min,max,minLabel,maxLabel) {
+ const rect=canvas.getBoundingClientRect();
+ const w=Math.max(420,Math.floor(rect.width||canvas.parentElement.clientWidth||420));
+ const h=Math.max(260,Math.floor(rect.height||360));
+ const dpr=Math.max(2,window.devicePixelRatio||1);
+ canvas.width=Math.round(w*dpr); canvas.height=Math.round(h*dpr);
+ const ctx=canvas.getContext("2d");
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ ctx.clearRect(0,0,w,h);
+ const pad={l:66,r:20,t:43,b:48},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
+ const validos=valores.filter(Number.isFinite);
+ let lo=min!==null?min:0;
+ let hi=max!==null?max:1;
+ if(validos.length){lo=Math.min(lo,...validos);hi=Math.max(hi,...validos);}
+ if(hi===lo)hi=lo+1;
+ const span=hi-lo;
+ lo-=span*.10;hi+=span*.10;
+ const y=v=>pad.t+(hi-v)/(hi-lo)*ph;
+ const x=i=>pad.l+(valores.length?pw/valores.length*(i+.5):pw/2);
+ ctx.lineWidth=1;
+ ctx.font="12px Arial";
+ for(let i=0;i<=5;i++){
+  const v=hi-(hi-lo)*i/5,yy=y(v);
+  ctx.strokeStyle="#d8e0e8";ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();
+  ctx.fillStyle="#000";ctx.textAlign="right";ctx.fillText(fmt(v,2),pad.l-8,yy+4);
+ }
+ // Limites de referência claramente identificados.
+ [[min,"#244d78",minLabel],[max,"#4266a5",maxLabel]].forEach(([v,col,label])=>{
+  if(v===null||v===undefined)return;
+  ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.setLineDash([8,5]);
+  ctx.beginPath();ctx.moveTo(pad.l,y(v));ctx.lineTo(w-pad.r,y(v));ctx.stroke();ctx.setLineDash([]);
+  if(label){
+   ctx.font="bold 11px Arial";ctx.textAlign="right";ctx.fillStyle=col;
+   ctx.fillText(label,w-pad.r-3,Math.max(12,y(v)-6));
+  }
+ });
+ // Eixo vertical e horizontal.
+ ctx.strokeStyle="#333";ctx.lineWidth=1.2;
+ ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,h-pad.b);ctx.lineTo(w-pad.r,h-pad.b);ctx.stroke();
+ // Linha de resultados em rosa para destacar; valores pretos e separados da linha.
+ ctx.strokeStyle="#e72d59";ctx.lineWidth=3;ctx.beginPath();
+ let iniciou=false;
+ valores.forEach((v,i)=>{
+  if(!Number.isFinite(v)){iniciou=false;return;}
+  if(!iniciou){ctx.moveTo(x(i),y(v));iniciou=true;}else ctx.lineTo(x(i),y(v));
+ });
+ ctx.stroke();
+ valores.forEach((v,i)=>{
+  const xx=x(i);
+  ctx.fillStyle="#000";ctx.font="11px Arial";ctx.textAlign="center";
+  ctx.fillText(String(i+1).padStart(2,"0"),xx,h-pad.b+17);
+  if(!Number.isFinite(v))return;
+  ctx.fillStyle="#e72d59";ctx.beginPath();ctx.arc(xx,y(v),5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="#fff";ctx.lineWidth=1.2;ctx.stroke();
+  ctx.font="bold 11px Arial";
+  ctx.fillStyle="#000";
+  const labelY = y(v) < pad.t + 35 ? y(v) + 24 : y(v) - 16;
+  ctx.fillText(fmt(v,2),xx,labelY);
+ });
+ ctx.fillStyle="#000";ctx.font="bold 12px Arial";ctx.textAlign="center";
+ ctx.fillText("Número da bolsa",pad.l+pw/2,h-7);
+ // Legenda compacta, legível e sem depender das cores do navegador.
+ let lx=pad.l,ly=19;
+ ctx.font="11px Arial";ctx.textAlign="left";
+ ctx.strokeStyle="#e72d59";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(lx+20,ly);ctx.stroke();
+ ctx.fillStyle="#000";ctx.fillText("Resultado",lx+25,ly+4);lx+=105;
+ [[min,"#244d78",minLabel?"Mínimo: "+minLabel:""],[max,"#4266a5",maxLabel?"Máximo: "+maxLabel:""]].forEach(([v,col,label])=>{
+  if(v===null||!label)return;
+  ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(lx+20,ly);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle="#000";ctx.fillText(label,lx+25,ly+4);lx+=145;
+ });
+}
+function renderizarGraficos() {
+ $("periodo").textContent=dados.mes.toUpperCase()+" / "+dados.ano;
+ const painel=$("painelGraficos");painel.innerHTML="";
+ painel.appendChild(criarGrafico("Análise de Volume por Unidade de CH Comum",
+  dados.linhas.slice(0,dados.quantidadeAmostras).map(r=>valido(r.volume)?num(r.volume):NaN),"mL",220,320,"220 mL","320 mL"));
+ painel.appendChild(criarGrafico("Análise de Ht por Unidade de CH Comum",
+  dados.linhas.slice(0,dados.quantidadeAmostras).map(r=>valido(r.ht)?num(r.ht):NaN),"%",65,80,"65%","80%"));
+ painel.appendChild(criarGrafico("Análise de Hb por Unidade de CH Comum",
+  dados.linhas.slice(0,dados.quantidadeAmostras).map(r=>valido(r.hbUnid)?num(r.hbUnid):NaN),"g/unid.",45,null,"45 g/unidade",null));
+ painel.appendChild(criarGrafico("Análise do Grau de Hemólise por Unidade de CH Comum",
+  dados.linhas.slice(0,dados.quantidadeAmostras).map(r=>valido(r.hemolise)?num(r.hemolise):NaN),"%",null,.8,null,"0,8%"));
+}
+function atualizarTudo() {
+ validarCampos();renderizarSumario();conclusao();renderizarGraficos();
+}
+$("mes").addEventListener("change",()=>{
+ dados.mes=$("mes").value;salvar();$("periodoCabecalho").textContent="Controle realizado em: "+dados.mes+" / "+dados.ano;renderizarGraficos();
+});
+$("ano").addEventListener("input",()=>{
+ dados.ano=$("ano").value||new Date().getFullYear();salvar();$("periodoCabecalho").textContent="Controle realizado em: "+dados.mes+" / "+dados.ano;renderizarGraficos();
+});
+function atualizarProducao(valor) {
+ dados.producao=valor;
+ $("producao").value=valor;
+ $("producaoResumo").textContent=valor||"—";
+ salvar();renderizarSumario();
+}
+$("producao").addEventListener("input",()=>atualizarProducao($("producao").value));
+
+$("quantidadeAmostras").addEventListener("change",()=>{
+ const n=Math.max(1,Math.min(100,Math.floor(Number($("quantidadeAmostras").value)||1)));
+ dados.quantidadeAmostras=n;
+ while(dados.linhas.length<n) dados.linhas.push(linhaVazia());
+ $("quantidadeAmostras").value=n;
+ salvar();renderizarLinhas();atualizarTudo();
+});
+$("unidadeNC").addEventListener("input",()=>{
+ dados.unidadeNC=$("unidadeNC").value;salvar();
+});
+$("observacoes").addEventListener("input",()=>{
+ dados.observacoes=$("observacoes").value;salvar();
+});
+function prepararGraficosParaImpressao() {
+ document.body.classList.add("print-mode");
+ renderizarGraficos();
+ document.querySelectorAll("#painelGraficos canvas").forEach(canvas=>{
+  if(canvas._grafico) desenhar(canvas,canvas._grafico.valores,canvas._grafico.unidade,canvas._grafico.min,canvas._grafico.max,canvas._grafico.minLabel,canvas._grafico.maxLabel);
+ });
+}
+$("pdf").addEventListener("click",()=>{
+ prepararGraficosParaImpressao();
+ setTimeout(()=>window.print(),650);
+});
+window.addEventListener("beforeprint",prepararGraficosParaImpressao);
+window.addEventListener("afterprint",()=>{
+ document.body.classList.remove("print-mode");
+ renderizarGraficos();
+});
+$("backup").addEventListener("click",()=>{
+ const blob=new Blob([JSON.stringify({app:"CQ CH",versao:1,dados},null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="backup-cq-ch-"+dados.ano+".json";a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+$("importar").addEventListener("click",()=>$("arquivo").click());
+$("arquivo").addEventListener("change",async e=>{
+ try {
+  const f=e.target.files[0];if(!f)return;
+  const j=JSON.parse(await f.text()),x=j.dados||j.data||j;
+  if(!Array.isArray(x.linhas||x.rows))throw new Error("Arquivo inválido");
+  if(!confirm("Importar o backup e substituir os dados atuais?"))return;
+  dados={...dados,...x};
+  if(!dados.linhas&&dados.rows)dados.linhas=dados.rows;
+  garantirLinhas();salvar();inicializar();alert("Backup importado.");
+ } catch(err) {alert("Não foi possível importar esse backup.");}
+ finally {e.target.value="";}
+});
+function inicializar() {
+ preencherCabecalho();renderizarLinhas();renderizarSumario();conclusao();renderizarGraficos();
+}
+carregar();inicializar();
+window.addEventListener("resize",()=>{
+ clearTimeout(window.__cqResize);
+ window.__cqResize=setTimeout(renderizarGraficos,200);
+});
+})();
+</script>
+</body>
+</html>
